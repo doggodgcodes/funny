@@ -1,330 +1,310 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Slice Beats - Beat Saber Clone</title>
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slice Beats - Extreme Flow Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-            body {
-                font-family: "Arial", sans-serif;
-                overflow: hidden;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-            }
+        body {
+            font-family: -apple-system, blinkmacsystemfont, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: radial-gradient(circle, #0c001f 0%, #020007 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            user-select: none;
+        }
 
-            .warning-banner {
-                background-color: #ff0000;
-                color: white;
-                text-align: center;
-                padding: 12px;
-                font-weight: bold;
-                font-size: 16px;
-                width: 100%;
-                position: fixed;
-                top: 0;
-                z-index: 1000;
-            }
+        /* Glassmorphic Canvas Frame Wrapper */
+        #canvasContainer {
+            position: relative;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(0, 221, 255, 0.1);
+        }
 
-            #gameCanvas {
-                border: 3px solid #fff;
-                box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-                cursor: none;
-                background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1e 100%);
-            }
+        #gameCanvas {
+            display: block;
+            border-radius: 14px;
+            cursor: none;
+        }
 
-            #ui {
-                position: absolute;
-                top: 50%;
-                left: 50px;
-                transform: translateY(-50%);
-                color: white;
-                text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
-                z-index: 10;
-                pointer-events: none;
-            }
+        /* Animated Glassmorphic Panels */
+        .menu-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(8, 4, 20, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 40px;
+            border-radius: 24px;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            width: 95%;
+            max-width: 680px;
+            transition: all 0.3s ease;
+        }
 
-            #score {
-                font-weight: bold;
-                font-size: 32px;
-                color: #ffd700;
-            }
+        h1 {
+            font-size: 38px;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #ff0055, #00ddff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
 
-            #combo {
-                font-size: 20px;
-                color: #ff6b6b;
-                margin-top: 10px;
-            }
+        p {
+            font-size: 15px;
+            margin-bottom: 20px;
+            color: #a49cb8;
+            line-height: 1.5;
+        }
 
-            #gameOver {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: rgba(0, 0, 0, 0.9);
-                padding: 40px 60px;
-                border-radius: 20px;
-                text-align: center;
-                color: white;
-                display: none;
-                z-index: 100;
-            }
+        /* High Animation Button Engine */
+        button {
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
 
-            #gameOver h1 {
-                font-size: 48px;
-                margin-bottom: 20px;
-                color: #ffd700;
-            }
+        button:hover {
+            transform: scale(1.05) translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 221, 255, 0.4);
+            filter: brightness(1.2);
+        }
 
-            #gameOver button {
-                margin-top: 20px;
-                padding: 15px 40px;
-                font-size: 20px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                border: none;
-                border-radius: 10px;
-                cursor: pointer;
-                transition: transform 0.2s;
-            }
+        button:active {
+            transform: scale(0.98) translateY(1px);
+        }
 
-            #gameOver button:hover {
-                transform: scale(1.1);
-            }
+        /* Side Menu Layout Elements */
+        .start-layout {
+            display: flex;
+            gap: 25px;
+            text-align: left;
+        }
 
-            #startScreen {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: rgba(0, 0, 0, 0.9);
-                padding: 40px 60px;
-                border-radius: 20px;
-                text-align: center;
-                color: white;
-                z-index: 100;
-            }
+        .main-controls {
+            flex: 1.1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
 
-            #startScreen h1 {
-                font-size: 56px;
-                margin-bottom: 20px;
-                color: #ffd700;
-                text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-            }
+        .side-menu {
+            flex: 0.9;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            max-height: 280px;
+            overflow-y: auto;
+        }
 
-            #startScreen p {
-                font-size: 18px;
-                margin-bottom: 30px;
-                color: #ddd;
-            }
+        .side-menu h3 {
+            font-size: 14px;
+            color: #00ddff;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 6px;
+        }
 
-            #startScreen button {
-                padding: 15px 40px;
-                font-size: 24px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                border: none;
-                border-radius: 10px;
-                cursor: pointer;
-                transition: transform 0.2s;
-                margin: 10px;
-            }
+        .difficulty-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
 
-            #startScreen button:hover {
-                transform: scale(1.1);
-            }
+        .diff-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-            #winScreen {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: rgba(0, 0, 0, 0.95);
-                padding: 40px 60px;
-                border-radius: 20px;
-                text-align: center;
-                color: white;
-                display: none;
-                z-index: 100;
-                border: 3px solid #00ff00;
-                box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
-            }
+        .diff-btn.active[data-diff="easy"] {
+            background: linear-gradient(135deg, #00ffcc, #00aaff);
+            color: black;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
+        }
 
-            #winScreen h1 {
-                font-size: 56px;
-                margin-bottom: 20px;
-                color: #00ff00;
-                text-shadow: 0 0 30px rgba(0, 255, 0, 0.8);
-            }
+        .diff-btn.active[data-diff="expert"] {
+            background: linear-gradient(135deg, #ff0055, #990022);
+            color: white;
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
+        }
 
-            #winScreen button {
-                margin-top: 20px;
-                padding: 15px 40px;
-                font-size: 20px;
-                background: linear-gradient(135deg, #00ff00 0%, #00aa00 100%);
-                color: white;
-                border: none;
-                border-radius: 10px;
-                cursor: pointer;
-                transition: transform 0.2s;
-            }
+        .songBtn {
+            display: block;
+            width: 100%;
+            margin: 8px 0;
+            padding: 10px 15px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.07);
+            text-align: left;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
 
-            #winScreen button:hover {
-                transform: scale(1.1);
-            }
+        .lockedBtn {
+            display: block;
+            width: 100%;
+            margin: 8px 0;
+            padding: 10px 15px;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #555;
+            text-align: left;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            cursor: not-allowed;
+        }
 
-            #pauseBtn {
-                position: absolute;
-                top: 20px;
-                left: 20px;
-                padding: 10px 20px;
-                font-size: 18px;
-                background: rgba(255, 255, 255, 0.2);
-                color: white;
-                border: 2px solid rgba(255, 255, 255, 0.5);
-                border-radius: 8px;
-                cursor: pointer;
-                z-index: 50;
-                backdrop-filter: blur(5px);
-                transition: all 0.2s;
-                display: none;
-            }
+        .lockedBtn:hover {
+            transform: none;
+            box-shadow: none;
+            filter: none;
+        }
 
-            #pauseBtn:hover {
-                background: rgba(255, 255, 255, 0.3);
-                transform: scale(1.05);
-            }
+        #fullscreenBtn {
+            background: linear-gradient(135deg, #7928ca, #ff0080);
+            width: 100%;
+            margin-top: 15px;
+        }
 
-            #pauseScreen {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: rgba(0, 0, 0, 0.9);
-                padding: 40px 60px;
-                border-radius: 20px;
-                text-align: center;
-                color: white;
-                display: none;
-                z-index: 100;
-            }
+        #pauseBtn {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            padding: 10px 18px;
+            font-size: 14px;
+            background: rgba(10, 5, 20, 0.6);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            z-index: 50;
+            display: none;
+        }
 
-            #pauseScreen h1 {
-                font-size: 48px;
-                margin-bottom: 20px;
-                color: #00ffff;
-                text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
-            }
+        #hud {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            text-align: right;
+            color: white;
+            font-family: monospace;
+            z-index: 10;
+            pointer-events: none;
+            background: rgba(10, 5, 20, 0.6);
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+        }
 
-            #pauseScreen button {
-                margin: 10px;
-                padding: 15px 40px;
-                font-size: 20px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                border: none;
-                border-radius: 10px;
-                cursor: pointer;
-                transition: transform 0.2s;
-            }
+        #score { font-size: 24px; color: #ffd700; font-weight: bold; }
+        #combo { font-size: 18px; color: #00ffff; margin-top: 4px; }
+        .stat-line { font-size: 20px; margin: 10px 0; color: #e0dcf0; }
+        .highlight-text { color: #00ffcc; font-weight: bold; }
+        #restartBtn, #winRestartBtn { background: linear-gradient(135deg, #ffd700, #ff8800); width: 100%; }
+    </style>
+</head>
+<body>
 
-            #pauseScreen button:hover {
-                transform: scale(1.1);
-            }
-        </style>
-    </head>
-    <body>
-        <div class="warning-banner">
-            ⚠️ Slice Beats is currently not working. Please check back later! ⚠️
-        </div>
+    <button id="pauseBtn">⏸ PAUSE</button>
 
-        <button id="pauseBtn">⏸ PAUSE</button>
+    <div id="hud">
+        <div id="score">SCORE: 0</div>
+        <div id="combo">COMBO: 0x</div>
+    </div>
 
-        <div id="ui">
-            <div id="combo">0x</div>
-            <div id="score">Score: 0</div>
-        </div>
+    <div id="canvasContainer">
+        <!-- Main Interactive Dashboard Setup Matrix -->
+        <div id="startScreen" class="menu-panel">
+            <div class="start-layout">
+                <div class="main-controls">
+                    <h1>🎵 SLICE BEATS 🎵</h1>
+                    <p>Select your difficulty, click a song, and get slicing those beats!</p>
+                    
+                    <div class="difficulty-container">
+                        <button class="diff-btn active" data-diff="easy">EASY</button>
+                        <button class="diff-btn" data-diff="expert">EXPERT</button>
+                    </div>
 
-        <div id="startScreen">
-            <h1>🎵 SLICE BEATS 🎵</h1>
-            <p>Choose your song and start slicing!</p>
-            <div style="margin: 20px 0">
-                <h2
-                    style="font-size: 24px; margin-bottom: 15px; color: #00ffff"
-                >
-                    SELECT SONG:
-                </h2>
-                <button
-                    class="songBtn"
-                    data-song="Chocolate Party by Mine Chicken.mp3"
-                    data-difficulty="easy"
-                    style="
-                        display: block;
-                        width: 100%;
-                        margin: 10px auto;
-                        padding: 15px;
-                        font-size: 20px;
-                        background: linear-gradient(
-                            135deg,
-                            #00ff00 0%,
-                            #00aa00 100%
-                        );
-                        color: white;
-                        border: none;
-                        border-radius: 10px;
-                        cursor: pointer;
-                    "
-                >
-                    🍫 Choco Party
-                    <span style="font-size: 14px; opacity: 0.8">(EASY)</span>
-                </button>
-                <button
-                    class="songBtn"
-                    data-song="dumb saong.mp3"
-                    data-difficulty="expert"
-                    style="
-                        display: block;
-                        width: 100%;
-                        margin: 10px auto;
-                        padding: 15px;
-                        font-size: 20px;
-                        background: linear-gradient(
-                            135deg,
-                            #ff0000 0%,
-                            #aa0000 100%
-                        );
-                        color: white;
-                        border: none;
-                        border-radius: 10px;
-                        cursor: pointer;
-                    "
-                >
-                    🔥 Dumb Song
-                    <span style="font-size: 14px; opacity: 0.8"
-                        >(EXPERT - IMPOSSIBLE!)</span
-                    >
-                </button>
+                    <button id="fullscreenBtn">🖥️ FULLSCREEN MODE</button>
+                </div>
+
+                <div class="side-menu">
+                    <h3>Available Tracks</h3>
+                    <div id="songList">
+                        <button class="songBtn" data-song="Chocolate Party by Mine Chicken.mp3">🍫 Choco Party ‹</button>
+                        <button class="songBtn" data-song="dumb saong.mp3">🔥 Dumb Song ‹</button>
+                        <button class="lockedBtn" disabled>🔒 Track ???</button>
+                        <button class="lockedBtn" disabled>🔒 Track ???</button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div id="gameOver">
-            <h1>GAME OVER!</h1>
-            <div id="finalScore"></div>
-            <div id="finalCombo"></div>
-            <button id="restartBtn">PLAY AGAIN</button>
+        <!-- Pause Panel Overlay Grid System -->
+        <div id="pauseScreen" class="menu-panel" style="display: none;">
+            <h1>PAUSED</h1>
+            <p>Saber sync stream suspended.</p>
+            <button id="resumeBtn" style="background: linear-gradient(135deg, #00ff88, #00aaff); width: 100%; margin-bottom: 15px;">▶ RESUME STREAM</button>
+            <div style="display: flex; gap: 10px;">
+                <button id="muteBtn" style="flex: 1; background: rgba(255,255,255,0.08);">🔊 MUTE</button>
+                <button id="quitBtn" style="flex: 1; background: #ff0055;">🚪 ABORT RUN</button>
+            </div>
+        </div>
+
+        <!-- Game Over UI Dashboard System -->
+        <div id="gameOver" class="menu-panel" style="display: none;">
+            <h1 style="background: linear-gradient(45deg, #ff3333, #ff0055); -webkit-background-clip: text;">SYSTEM CRASH</h1>
+            <p>Tracking lost! Frequency limits exceeded.</p>
+            <div id="finalScore" class="stat-line"></div>
+            <div id="finalCombo" class="stat-line"></div>
+            <button id="restartBtn">REBOOT CHANNEL</button>
+        </div>
+
+        <!-- Victory UI Dashboard System -->
+        <div id="winScreen" class="menu-panel" style="display: none;">
+            <h1>FLOW EXCELLENCE</h1>
+            <p>Audio wave array cleared perfectly!</p>
+            <div id="winScore" class="stat-line"></div>
+            <div id="winCombo" class="stat-line"></div>
+            <button id="winRestartBtn">OVERCLOCK MATRIX</button>
         </div>
 
         <canvas id="gameCanvas"></canvas>
+    </div>
 
-        <script src="game.js"></script>
-    </body>
+    <!-- External Script Integration Linkage -->
+    <script src="game.js"></script>
+</body>
 </html>
